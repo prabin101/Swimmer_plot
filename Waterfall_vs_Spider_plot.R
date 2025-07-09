@@ -1,276 +1,213 @@
-{
-  "nbformat": 4,
-  "nbformat_minor": 0,
-  "metadata": {
-    "colab": {
-      "provenance": [],
-      "authorship_tag": "ABX9TyPdjYR3G0JvcwTAlGZg2O5k",
-      "include_colab_link": true
-    },
-    "kernelspec": {
-      "name": "python3",
-      "display_name": "Python 3"
-    },
-    "language_info": {
-      "name": "python"
-    }
-  },
-  "cells": [
-    {
-      "cell_type": "markdown",
-      "metadata": {
-        "id": "view-in-github",
-        "colab_type": "text"
-      },
-      "source": [
-        "<a href=\"https://colab.research.google.com/github/prabin101/Swimmer_plot/blob/main/Waterfall_vs_Spider_plot.R\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
-      ]
-    },
-    {
-      "cell_type": "code",
-      "execution_count": 4,
-      "metadata": {
-        "colab": {
-          "base_uri": "https://localhost:8080/",
-          "height": 110
-        },
-        "id": "8mVBXSrk2UY9",
-        "outputId": "783f1789-d8c6-4e9b-d4a9-078051837f6e"
-      },
-      "outputs": [
-        {
-          "output_type": "error",
-          "ename": "SyntaxError",
-          "evalue": "invalid syntax (ipython-input-4-258081792.py, line 25)",
-          "traceback": [
-            "\u001b[0;36m  File \u001b[0;32m\"/tmp/ipython-input-4-258081792.py\"\u001b[0;36m, line \u001b[0;32m25\u001b[0m\n\u001b[0;31m    ) %>%\u001b[0m\n\u001b[0m       ^\u001b[0m\n\u001b[0;31mSyntaxError\u001b[0m\u001b[0;31m:\u001b[0m invalid syntax\n"
-          ]
-        }
-      ],
-      "source": [
-        "############## WaterFall plot ########################\n",
-        "\n",
-        "# Load necessary libraries\n",
-        "library(dplyr)\n",
-        "library(plotly)\n",
-        "\n",
-        "# --- Data Preparation ---\n",
-        "# Recreate and expand the dataset from Table 1\n",
-        "waterfall_data <- tibble(\n",
-        "    subjid = c(192, 243, 126, 498, 257, 743, # Original data\n",
-        "               226, 314, 118,\n",
-        "               # Added subjects for a richer plot\n",
-        "               501, 502, 503, 504, 505, 506, 507, 508, 509, 510,\n",
-        "               511, 512, 513, 514, 515),\n",
-        "    maxchange = c(92, 80, 70, 66, 60, -93, # Original data (Note: 743 is PD despite -93% change, likely due to new lesions)\n",
-        "                  -88, -95, -100,\n",
-        "                  # Added subjects\n",
-        "                  110, 75, 45, 25, 10, 5, -5, -15, -28, -35,\n",
-        "                  -45, -58, -65, -79, -100),\n",
-        "    response = c(\"Progressive Disease\", \"Stable Disease\", \"Progressive Disease\", \"Progressive Disease\", \"Progressive Disease\", \"Progressive Disease\",\n",
-        "                 \"Partial Response\", \"Partial Response\", \"Complete Response\",\n",
-        "                 # Added subjects' responses\n",
-        "                 \"Progressive Disease\", \"Progressive Disease\", \"Progressive Disease\", \"Stable Disease\", \"Stable Disease\", \"Stable Disease\", \"Stable Disease\", \"Stable Disease\", \"Stable Disease\", \"Partial Response\",\n",
-        "                 \"Partial Response\", \"Partial Response\", \"Partial Response\", \"Partial Response\", \"Complete Response\")\n",
-        ") %>%\n",
-        "    # IMPORTANT: Sort by maxchange for the waterfall effect and create a factor for plotting order\n",
-        "    arrange(desc(maxchange)) %>%\n",
-        "    mutate(\n",
-        "        subjid_ordered = factor(subjid, levels = subjid),\n",
-        "        response = factor(response, levels = c(\"Progressive Disease\", \"Stable Disease\", \"Partial Response\", \"Complete Response\"))\n",
-        "    )\n",
-        "\n",
-        "# Define a color palette for the responses\n",
-        "response_colors <- c(\n",
-        "    \"Progressive Disease\" = \"#d73027\",\n",
-        "    \"Stable Disease\" = \"#fee090\",\n",
-        "    \"Partial Response\" = \"#4575b4\",\n",
-        "    \"Complete Response\" = \"#1a9850\"\n",
-        ")\n",
-        "\n",
-        "waterfall_plot <- plot_ly(\n",
-        "    data = waterfall_data,\n",
-        "    x = ~subjid_ordered,\n",
-        "    y = ~maxchange,\n",
-        "    color = ~response,\n",
-        "    colors = response_colors,\n",
-        "    type = 'bar',\n",
-        "    hoverinfo = 'text',\n",
-        "    text = ~paste(\n",
-        "        \"<b>Subject ID:</b>\", subjid,\n",
-        "        \"<br><b>Max Change:</b>\", maxchange, \"%\",\n",
-        "        \"<br><b>Response:</b>\", response\n",
-        "    )\n",
-        ") %>%\n",
-        "    layout(\n",
-        "        title = list(\n",
-        "            text = \"<b>Waterfall Plot of Best Overall Response</b>\",\n",
-        "            x = 0.05,\n",
-        "            font = list(size = 18)\n",
-        "        ),\n",
-        "        xaxis = list(\n",
-        "            title = \"Subjects\",\n",
-        "            showticklabels = FALSE,\n",
-        "            categoryorder = \"array\",\n",
-        "            categoryarray = ~subjid_ordered,\n",
-        "            linecolor = 'black',\n",
-        "            linewidth = 1,\n",
-        "            mirror = TRUE\n",
-        "        ),\n",
-        "        yaxis = list(\n",
-        "            title = \"% Change from Baseline\",\n",
-        "            gridcolor = \"#e6e6e6\",\n",
-        "            linecolor = 'black',\n",
-        "            linewidth = 1,\n",
-        "            mirror = TRUE\n",
-        "        ),\n",
-        "        legend = list(\n",
-        "            title = list(text = \"<b>Best Overall Response</b>\"),\n",
-        "            orientation = \"v\",\n",
-        "            x = 0.8,\n",
-        "            y = 1,  # Inside plot, above the top axis\n",
-        "            xanchor = \"center\",\n",
-        "            bgcolor = \"rgba(255,255,255,0.85)\",\n",
-        "            bordercolor = \"rgba(200,200,200,0.5)\",\n",
-        "            borderwidth = 1\n",
-        "        ),\n",
-        "        margin = list(\n",
-        "            l = 60,\n",
-        "            r = 60,\n",
-        "            b = 60,\n",
-        "            t = 100,  # Top space for the title and legend\n",
-        "            pad = 10\n",
-        "        ),\n",
-        "        plot_bgcolor = \"#ffffff\",\n",
-        "        paper_bgcolor = \"#ffffff\",\n",
-        "        shapes = list(\n",
-        "            list(type = 'line', x0 = 0, x1 = 1, xref = 'paper',\n",
-        "                 y0 = 20, y1 = 20, line = list(color = 'grey', dash = 'dash')),\n",
-        "            list(type = 'line', x0 = 0, x1 = 1, xref = 'paper',\n",
-        "                 y0 = -30, y1 = -30, line = list(color = 'grey', dash = 'dash'))\n",
-        "        )\n",
-        "    )\n",
-        "\n",
-        "# Display the plot\n",
-        "waterfall_plot\n",
-        "\n",
-        "\n",
-        "########### Spider Plot ####################\n",
-        "\n",
-        "library(dplyr)\n",
-        "library(plotly)\n",
-        "\n",
-        "# Custom color palette matching reference plot\n",
-        "response_colors <- c(\n",
-        "  \"Progressive Disease\" = \"#8B0000\",  # Dark Red\n",
-        "  \"Stable Disease\" = \"#FFD700\",      # Gold\n",
-        "  \"Partial Response\" = \"#0000CD\",    # Medium Blue\n",
-        "  \"Complete Response\" = \"#228B22\"    # Forest Green\n",
-        ")\n",
-        "\n",
-        "# Enhanced sample data\n",
-        "spider_data <- tibble::tribble(\n",
-        "  ~subjid, ~month, ~change, ~response,\n",
-        "  201, 0, 0, \"Complete Response\", 201, 5, -35, \"Complete Response\", 201, 10, -40, \"Complete Response\",\n",
-        "  201, 15, -60, \"Complete Response\", 201, 20, -100, \"Complete Response\", 201, 30, -100, \"Complete Response\",\n",
-        "\n",
-        "  202, 0, 0, \"Partial Response\", 202, 5, -25, \"Partial Response\", 202, 10, -40, \"Partial Response\",\n",
-        "  202, 15, -50, \"Partial Response\", 202, 20, -30, \"Partial Response\", 202, 30, -40, \"Partial Response\",\n",
-        "\n",
-        "  203, 0, 0, \"Stable Disease\", 203, 5, 5, \"Stable Disease\", 203, 10, 15, \"Stable Disease\",\n",
-        "  203, 15, 10, \"Stable Disease\", 203, 20, 5, \"Stable Disease\", 203, 30, 10, \"Stable Disease\",\n",
-        "\n",
-        "  204, 0, 0, \"Progressive Disease\", 204, 5, 10, \"Progressive Disease\", 204, 10, 30, \"Progressive Disease\",\n",
-        "  204, 15, 50, \"Progressive Disease\", 204, 20, 70, \"Progressive Disease\", 204, 30, 90, \"Progressive Disease\",\n",
-        "\n",
-        "  205, 0, 0, \"Progressive Disease\", 205, 5, -10, \"Progressive Disease\", 205, 10, 0, \"Progressive Disease\",\n",
-        "  205, 15, 20, \"Progressive Disease\", 205, 20, 40, \"Progressive Disease\", 205, 30, 58, \"Progressive Disease\"\n",
-        ") %>%\n",
-        "  mutate(response = factor(response, levels = c(\"Progressive Disease\", \"Stable Disease\", \"Partial Response\", \"Complete Response\")))\n",
-        "\n",
-        "# Create plot\n",
-        "spider_plot <- plot_ly(\n",
-        "    data = spider_data,\n",
-        "    x = ~month,\n",
-        "    y = ~change,\n",
-        "    color = ~response,\n",
-        "    colors = response_colors,\n",
-        "    type = 'scatter',\n",
-        "    mode = 'lines+markers',\n",
-        "    line = list(width = 3),\n",
-        "    marker = list(size = 6),\n",
-        "    hoverinfo = 'text',\n",
-        "    text = ~paste(\n",
-        "        \"<b>Subject ID:</b>\", subjid,\n",
-        "        \"<br><b>Month:</b>\", month,\n",
-        "        \"<br><b>Change:</b>\", change, \"%\"\n",
-        "    )\n",
-        ") %>%\n",
-        "    layout(\n",
-        "        title = list(\n",
-        "            text = \"<b>Spider Plot of % Change from Baseline in Tumor Size</b>\",\n",
-        "            x = 0.05,\n",
-        "            font = list(size = 18)\n",
-        "        ),\n",
-        "        xaxis = list(\n",
-        "            title = \"Study Duration (months)\",\n",
-        "            showgrid = FALSE,\n",
-        "            zeroline = FALSE,\n",
-        "            linecolor = 'black',\n",
-        "            linewidth = 1,\n",
-        "            mirror = TRUE\n",
-        "        ),\n",
-        "        yaxis = list(\n",
-        "            title = \"% Change from Baseline\",\n",
-        "            range = c(-110, 110),\n",
-        "            showgrid = TRUE,\n",
-        "            gridcolor = \"#e6e6e6\",\n",
-        "            zeroline = FALSE,\n",
-        "            linecolor = 'black',\n",
-        "            linewidth = 1,\n",
-        "            mirror = TRUE\n",
-        "        ),\n",
-        "        legend = list(\n",
-        "            title = list(text = \"<b>Best Overall Response</b>\"),\n",
-        "            orientation = \"h\",\n",
-        "            x = 0.5,\n",
-        "            y = -0.15,\n",
-        "            xanchor = \"center\",\n",
-        "            bgcolor = \"rgba(255,255,255,0.9)\",\n",
-        "            bordercolor = \"rgba(200,200,200,0.5)\",\n",
-        "            borderwidth = 1\n",
-        "        ), margin = list(\n",
-        "            l = 60,  # left\n",
-        "            r = 60,  # right\n",
-        "            b = 100, # bottom (increased for legend space)\n",
-        "            t = 80,  # top\n",
-        "            pad = 10\n",
-        "        ),\n",
-        "        plot_bgcolor = \"#ffffff\",\n",
-        "        paper_bgcolor = \"#ffffff\",\n",
-        "        shapes = list(\n",
-        "            list(type = \"line\", x0 = 0, x1 = 1, xref = \"paper\", y0 = 20, y1 = 20,\n",
-        "                 line = list(color = 'gray', dash = 'dash')),\n",
-        "            list(type = \"line\", x0 = 0, x1 = 1, xref = \"paper\", y0 = -30, y1 = -30,\n",
-        "                 line = list(color = 'gray', dash = 'dash')),\n",
-        "            list(type = \"line\", x0 = 0, x1 = 1, xref = \"paper\", y0 = 0, y1 = 0,\n",
-        "                 line = list(color = 'black', width = 1))\n",
-        "        )\n",
-        "    )\n",
-        "\n",
-        "# Display the plot\n",
-        "spider_plot\n",
-        "\n"
-      ]
-    },
-    {
-      "cell_type": "code",
-      "source": [],
-      "metadata": {
-        "id": "vpnJSxx73d-6"
-      },
-      "execution_count": null,
-      "outputs": []
-    }
-  ]
-}
+############## WaterFall plot ########################
+
+# Load necessary libraries
+library(dplyr)
+library(plotly)
+
+# --- Data Preparation ---
+# Recreate and expand the dataset from Table 1
+waterfall_data <- tibble(
+    subjid = c(192, 243, 126, 498, 257, 743, # Original data
+               226, 314, 118,
+               # Added subjects for a richer plot
+               501, 502, 503, 504, 505, 506, 507, 508, 509, 510,
+               511, 512, 513, 514, 515),
+    maxchange = c(92, 80, 70, 66, 60, -93, # Original data (Note: 743 is PD despite -93% change, likely due to new lesions)
+                  -88, -95, -100,
+                  # Added subjects
+                  110, 75, 45, 25, 10, 5, -5, -15, -28, -35,
+                  -45, -58, -65, -79, -100),
+    response = c("Progressive Disease", "Stable Disease", "Progressive Disease", "Progressive Disease", "Progressive Disease", "Progressive Disease",
+                 "Partial Response", "Partial Response", "Complete Response",
+                 # Added subjects' responses
+                 "Progressive Disease", "Progressive Disease", "Progressive Disease", "Stable Disease", "Stable Disease", "Stable Disease", "Stable Disease", "Stable Disease", "Stable Disease", "Partial Response",
+                 "Partial Response", "Partial Response", "Partial Response", "Partial Response", "Complete Response")
+) %>%
+    # IMPORTANT: Sort by maxchange for the waterfall effect and create a factor for plotting order
+    arrange(desc(maxchange)) %>%
+    mutate(
+        subjid_ordered = factor(subjid, levels = subjid),
+        response = factor(response, levels = c("Progressive Disease", "Stable Disease", "Partial Response", "Complete Response"))
+    )
+
+# Define a color palette for the responses
+response_colors <- c(
+    "Progressive Disease" = "#d73027",
+    "Stable Disease" = "#fee090",
+    "Partial Response" = "#4575b4",
+    "Complete Response" = "#1a9850"
+)
+
+waterfall_plot <- plot_ly(
+    data = waterfall_data,
+    x = ~subjid_ordered,
+    y = ~maxchange,
+    color = ~response,
+    colors = response_colors,
+    type = 'bar',
+    hoverinfo = 'text',
+    text = ~paste(
+        "<b>Subject ID:</b>", subjid,
+        "<br><b>Max Change:</b>", maxchange, "%",
+        "<br><b>Response:</b>", response
+    )
+) %>%
+    layout(
+        title = list(
+            text = "<b>Waterfall Plot of Best Overall Response</b>",
+            x = 0.05,
+            font = list(size = 18)
+        ),
+        xaxis = list(
+            title = "Subjects",
+            showticklabels = FALSE,
+            categoryorder = "array",
+            categoryarray = ~subjid_ordered,
+            linecolor = 'black',
+            linewidth = 1,
+            mirror = TRUE
+        ),
+        yaxis = list(
+            title = "% Change from Baseline",
+            gridcolor = "#e6e6e6",
+            linecolor = 'black',
+            linewidth = 1,
+            mirror = TRUE
+        ),
+        legend = list(
+            title = list(text = "<b>Best Overall Response</b>"),
+            orientation = "v",
+            x = 0.8,
+            y = 1,  # Inside plot, above the top axis
+            xanchor = "center",
+            bgcolor = "rgba(255,255,255,0.85)",
+            bordercolor = "rgba(200,200,200,0.5)",
+            borderwidth = 1
+        ),
+        margin = list(
+            l = 60,
+            r = 60,
+            b = 60,
+            t = 100,  # Top space for the title and legend
+            pad = 10
+        ),
+        plot_bgcolor = "#ffffff",
+        paper_bgcolor = "#ffffff",
+        shapes = list(
+            list(type = 'line', x0 = 0, x1 = 1, xref = 'paper',
+                 y0 = 20, y1 = 20, line = list(color = 'grey', dash = 'dash')),
+            list(type = 'line', x0 = 0, x1 = 1, xref = 'paper',
+                 y0 = -30, y1 = -30, line = list(color = 'grey', dash = 'dash'))
+        )
+    )
+
+# Display the plot
+waterfall_plot
+
+
+########### Spider Plot ####################
+
+library(dplyr)
+library(plotly)
+
+# Custom color palette matching reference plot
+response_colors <- c(
+    "Progressive Disease" = "#8B0000",  # Dark Red
+    "Stable Disease" = "#FFD700",      # Gold
+    "Partial Response" = "#0000CD",    # Medium Blue
+    "Complete Response" = "#228B22"    # Forest Green
+)
+
+# Enhanced sample data
+spider_data <- tibble::tribble(
+    ~subjid, ~month, ~change, ~response,
+    201, 0, 0, "Complete Response", 201, 5, -35, "Complete Response", 201, 10, -40, "Complete Response",
+    201, 15, -60, "Complete Response", 201, 20, -100, "Complete Response", 201, 30, -100, "Complete Response",
+    
+    202, 0, 0, "Partial Response", 202, 5, -25, "Partial Response", 202, 10, -40, "Partial Response",
+    202, 15, -50, "Partial Response", 202, 20, -30, "Partial Response", 202, 30, -40, "Partial Response",
+    
+    203, 0, 0, "Stable Disease", 203, 5, 5, "Stable Disease", 203, 10, 15, "Stable Disease",
+    203, 15, 10, "Stable Disease", 203, 20, 5, "Stable Disease", 203, 30, 10, "Stable Disease",
+    
+    204, 0, 0, "Progressive Disease", 204, 5, 10, "Progressive Disease", 204, 10, 30, "Progressive Disease",
+    204, 15, 50, "Progressive Disease", 204, 20, 70, "Progressive Disease", 204, 30, 90, "Progressive Disease",
+    
+    205, 0, 0, "Progressive Disease", 205, 5, -10, "Progressive Disease", 205, 10, 0, "Progressive Disease",
+    205, 15, 20, "Progressive Disease", 205, 20, 40, "Progressive Disease", 205, 30, 58, "Progressive Disease"
+) %>%
+    mutate(response = factor(response, levels = c("Progressive Disease", "Stable Disease", "Partial Response", "Complete Response")))
+
+# Create plot
+spider_plot <- plot_ly(
+    data = spider_data,
+    x = ~month,
+    y = ~change,
+    color = ~response,
+    colors = response_colors,
+    type = 'scatter',
+    mode = 'lines+markers',
+    line = list(width = 3),
+    marker = list(size = 6),
+    hoverinfo = 'text',
+    text = ~paste(
+        "<b>Subject ID:</b>", subjid,
+        "<br><b>Month:</b>", month,
+        "<br><b>Change:</b>", change, "%"
+    )
+) %>%
+    layout(
+        title = list(
+            text = "<b>Spider Plot of % Change from Baseline in Tumor Size</b>",
+            x = 0.05,
+            font = list(size = 18)
+        ),
+        xaxis = list(
+            title = "Study Duration (months)",
+            showgrid = FALSE,
+            zeroline = FALSE,
+            linecolor = 'black',
+            linewidth = 1,
+            mirror = TRUE
+        ),
+        yaxis = list(
+            title = "% Change from Baseline",
+            range = c(-110, 110),
+            showgrid = TRUE,
+            gridcolor = "#e6e6e6",
+            zeroline = FALSE,
+            linecolor = 'black',
+            linewidth = 1,
+            mirror = TRUE
+        ),
+        legend = list(
+            title = list(text = "<b>Best Overall Response</b>"),
+            orientation = "h",
+            x = 0.5,
+            y = -0.15,
+            xanchor = "center",
+            bgcolor = "rgba(255,255,255,0.9)",
+            bordercolor = "rgba(200,200,200,0.5)",
+            borderwidth = 1
+        ), margin = list(
+            l = 60,  # left
+            r = 60,  # right
+            b = 100, # bottom (increased for legend space)
+            t = 80,  # top
+            pad = 10
+        ),
+        plot_bgcolor = "#ffffff",
+        paper_bgcolor = "#ffffff",
+        shapes = list(
+            list(type = "line", x0 = 0, x1 = 1, xref = "paper", y0 = 20, y1 = 20,
+                 line = list(color = 'gray', dash = 'dash')),
+            list(type = "line", x0 = 0, x1 = 1, xref = "paper", y0 = -30, y1 = -30,
+                 line = list(color = 'gray', dash = 'dash')),
+            list(type = "line", x0 = 0, x1 = 1, xref = "paper", y0 = 0, y1 = 0,
+                 line = list(color = 'black', width = 1))
+        )
+    )
+
+# Display the plot
+spider_plot
+
